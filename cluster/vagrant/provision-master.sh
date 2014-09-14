@@ -93,16 +93,21 @@ EOF
   # Install Salt
   #
   # -M installs the master
-  curl -sS -L --connect-timeout 20 --retry 6 --retry-delay 10 https://bootstrap.saltstack.com | sh -s -- -M
+  #curl -sS -L --connect-timeout 20 --retry 6 --retry-delay 10 https://bootstrap.saltstack.com | sh -s -- -M
 
   # Install salt-api
   #
   # This is used to inform the cloud provider used in the vagrant cluster
-  yum install -y salt-api
+  #yum install -y salt-api
   # Set log level to a level higher than "info" to prevent the message about
   # enabling the service (which is not an error) from being printed to stderr.
-  SYSTEMD_LOG_LEVEL=notice systemctl enable salt-api
-  systemctl start salt-api
+  #SYSTEMD_LOG_LEVEL=notice systemctl enable salt-api
+  #systemctl start salt-api
+
+  apt-get install -y software-properties-common
+  add-apt-repository -y ppa:saltstack/salt
+  apt-get update
+  apt-get install -y salt-master salt-api salt-minion
 
 fi
 

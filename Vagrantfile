@@ -10,7 +10,7 @@ Vagrant.require_version ">= 1.6.2"
 Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
 
   # The number of minions to provision
-  num_minion = (ENV['KUBERNETES_NUM_MINIONS'] || 3).to_i
+  num_minion = (ENV['KUBERNETES_NUM_MINIONS'] || 2).to_i
 
   # ip configuration
   master_ip = "10.245.1.2"
@@ -19,13 +19,17 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
   minion_ips_str = minion_ips.join(",")
 
   # Determine the OS platform to use
-  kube_os = ENV['KUBERNETES_OS'] || "fedora"
+  kube_os = ENV['KUBERNETES_OS'] || "ubuntu"
 
   # OS platform to box information
   kube_box = {
     "fedora" => {
       "name" => "fedora20",
       "box_url" => "http://opscode-vm-bento.s3.amazonaws.com/vagrant/virtualbox/opscode_fedora-20_chef-provisionerless.box"
+    },
+	"ubuntu" => {
+      "name" => "trusty64",
+      "box_url" => "https://cloud-images.ubuntu.com/vagrant/trusty/current/trusty-server-cloudimg-amd64-vagrant-disk1.box"
     }
   }
 
@@ -36,6 +40,11 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
     config.vm.provision "shell", inline: "/vagrant/cluster/vagrant/provision-master.sh #{master_ip} #{num_minion} #{minion_ips_str}"
     config.vm.network "private_network", ip: "#{master_ip}"
     config.vm.hostname = "kubernetes-master"
+
+	config.vm.provider "virtualbox" do |vb|
+     # Use VBoxManage to customize the VM. For example to change memory:
+     vb.customize ["modifyvm", :id, "--memory", "1024"]
+    end
   end
 
   # Kubernetes minion
@@ -48,6 +57,11 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
       minion.vm.provision "shell", inline: "/vagrant/cluster/vagrant/provision-minion.sh #{master_ip} #{num_minion} #{minion_ips_str} #{minion_ip} #{minion_index}"
       minion.vm.network "private_network", ip: "#{minion_ip}"
       minion.vm.hostname = "kubernetes-minion-#{minion_index}"
+
+      config.vm.provider "virtualbox" do |vb|
+     	# Use VBoxManage to customize the VM. For example to change memory:
+     	vb.customize ["modifyvm", :id, "--memory", "1024"]
+      end
     end
   end
 

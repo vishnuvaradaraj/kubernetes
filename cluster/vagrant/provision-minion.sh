@@ -42,9 +42,10 @@ mkdir -p /etc/salt/minion.d
 echo "master: $MASTER_NAME" > /etc/salt/minion.d/master.conf
 
 # Our minions will have a pool role to distinguish them from the master.
+#network_mode: openvswitch
+
 cat <<EOF >/etc/salt/minion.d/grains.conf
 grains:
-  network_mode: openvswitch
   node_ip: $MINION_IP
   etcd_servers: $MASTER_IP
   roles:
@@ -53,11 +54,20 @@ grains:
   minion_ip: $MINION_IP
 EOF
 
+#install docker
+curl -sSL https://get.docker.io/ubuntu/ | sudo sh
+
 # we will run provision to update code each time we test, so we do not want to do salt install each time
 if ! which salt-minion >/dev/null 2>&1; then
   # Install Salt
-  curl -sS -L --connect-timeout 20 --retry 6 --retry-delay 10 https://bootstrap.saltstack.com | sh -s
+  #curl -sS -L --connect-timeout 20 --retry 6 --retry-delay 10 https://bootstrap.saltstack.com | sh -s
+
+  apt-get install -y software-properties-common
+  add-apt-repository -y ppa:saltstack/salt
+  apt-get update
+  apt-get install -y salt-minion
+
 fi
 
 # run the networking setup
-$(dirname $0)/provision-network.sh $@
+echo $(dirname $0)/provision-network.sh $@
